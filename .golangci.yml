@@ -1,27 +1,34 @@
 # This file is licensed under the terms of the MIT license https://opensource.org/license/mit
 # Copyright (c) 2021-2025 Marat Reimers
-## Golden config for golangci-lint v2.13.2
+
+## Golden config for golangci-lint v2.14.0
 #
 # This is the best config for golangci-lint based on my experience and opinion.
 # It is very strict, but not extremely strict.
 # Feel free to adapt it to suit your needs.
 # If this config helps you, please consider keeping a link to this repo (see the next comment).
+
 # Based on https://github.com/maratori/golangci-lint-config
+
 version: "2"
+
 issues:
   # Maximum count of issues with the same text.
   # Set to 0 to disable.
   # Default: 3
   max-same-issues: 50
+
 formatters:
   enable:
     - goimports # checks if the code and import statements are formatted according to the 'goimports' command
     - golines # checks if code is formatted, and fixes long lines
+
     ## you may want to enable
     #- gci # checks if code and import statements are formatted, with additional rules
     #- gofmt # checks if the code is formatted according to 'gofmt' command
     #- gofumpt # enforces a stricter format than 'gofmt', while being backwards compatible
     #- swaggo # formats swaggo comments
+
   # All settings can be found here https://github.com/golangci/golangci-lint/blob/HEAD/.golangci.reference.yml
   settings:
     goimports:
@@ -30,10 +37,12 @@ formatters:
       # Default: []
       local-prefixes:
         - github.com/my/project
+
     golines:
       # Target maximum line length.
       # Default: 100
       max-len: 120
+
 linters:
   enable:
     - asasalint # checks for pass []any as any in variadic func(...any)
@@ -115,6 +124,7 @@ linters:
     - usetesting # reports uses of functions with replacement inside the testing package
     - wastedassign # finds wasted assignment statements
     - whitespace # detects leading and trailing whitespace
+
     ## you may want to enable
     #- arangolint # opinionated best practices for arangodb client
     #- decorder # checks declaration order and count of types, constants, variables and functions
@@ -131,6 +141,7 @@ linters:
     #- varnamelen # [great idea, but too many false positives] checks that the length of a variable's name matches its scope
     #- wrapcheck # checks that errors returned from external packages are wrapped
     #- zerologlint # detects the wrong usage of zerolog that a user forgets to dispatch zerolog.Event
+
     ## disabled
     #- containedctx # detects struct contained context.Context field
     #- contextcheck # [too many false positives] checks the function whether use a non-inherited context
@@ -151,6 +162,7 @@ linters:
     #- tagliatelle # checks the struct tags
     #- thelper # detects golang test helpers without t.Helper() call and checks the consistency of test helpers
     #- wsl_v5 # [too strict and mostly code is not more readable] add or remove empty lines
+
   # All settings can be found here https://github.com/golangci/golangci-lint/blob/HEAD/.golangci.reference.yml
   settings:
     cyclop:
@@ -161,6 +173,7 @@ linters:
       # If it's higher than 0.0 (float) the check is enabled.
       # Default: 0.0
       package-average: 10.0
+
     depguard:
       # Rules to apply.
       #
@@ -208,21 +221,25 @@ linters:
           deny:
             - pkg: log$
               desc: Use log/slog instead, see https://go.dev/blog/slog
+
     embeddedstructfieldcheck:
       # Checks that sync.Mutex and sync.RWMutex are not used as embedded fields.
       # Default: false
       forbid-mutex: true
+
     errcheck:
       # Report about not checking of errors in type assertions: `a := b.(MyStruct)`.
       # Such cases aren't reported by default.
       # Default: false
       check-type-assertions: true
+
     exhaustive:
       # Program elements to check for exhaustiveness.
       # Default: [ switch ]
       check:
         - switch
         - map
+
     exhaustruct_v5:
       # List of regular expressions to match type names that should be skipped from checking.
       # Anonymous structs can be matched by '<anonymous>' alias.
@@ -258,10 +275,15 @@ linters:
       # Allows empty structures in return statements.
       # Default: false
       allow-empty-returns: true
+      # Allow empty literals the blank identifier receives.
+      # Default: false
+      allow-empty-blank-assignments: true
+
     funcorder:
       # Checks if the exported methods of a structure are placed before the non-exported ones.
       # Default: true
       struct-method: false
+
     funlen:
       # Checks the number of lines in a function.
       # If lower than 0, disable the check.
@@ -271,14 +293,17 @@ linters:
       # If lower than 0, disable the check.
       # Default: 40
       statements: 50
+
     gochecksumtype:
       # Presence of `default` case in switch statements satisfies exhaustiveness, if all members are not listed.
       # Default: true
       default-signifies-exhaustive: false
+
     gocognit:
       # Minimal code complexity to report.
       # Default: 30 (but we recommend 10-20)
       min-complexity: 20
+
     gocritic:
       # Settings passed to gocritic.
       # The settings key is the name of a supported gocritic checker.
@@ -292,6 +317,7 @@ linters:
           # Whether to skip (*x).method() calls where x is a pointer receiver.
           # Default: true
           skipRecvDeref: false
+
     godoclint:
       # List of rules to enable in addition to the default set.
       # Default: empty
@@ -302,6 +328,7 @@ linters:
         # Require proper doc links to standard library declarations where applicable.
         # https://github.com/godoc-lint/godoc-lint?tab=readme-ov-file#require-stdlib-doclink
         - require-stdlib-doclink
+
     govet:
       # Enable all analyzers.
       # Default: false
@@ -317,10 +344,12 @@ linters:
           # Whether to be strict about shadowing; can be noisy.
           # Default: false
           strict: true
+
     inamedparam:
       # Skips check for interface methods with only a single parameter.
       # Default: false
       skip-single-param: true
+
     mnd:
       # List of function patterns to exclude from analysis.
       # Values always ignored: `time.Date`,
@@ -340,10 +369,12 @@ linters:
         - os.WriteFile
         - prometheus.ExponentialBuckets.*
         - prometheus.LinearBuckets
+
     nakedret:
       # Make an issue if func has more lines of code than this setting, and it has naked returns.
       # Default: 30
       max-func-lines: 0
+
     nolintlint:
       # Exclude following linters from requiring an explanation.
       # Default: []
@@ -354,6 +385,7 @@ linters:
       # Enable to require nolint directives to mention the specific linter being suppressed.
       # Default: false
       require-specific: true
+
     perfsprint:
       # Optimizes into strings concatenation.
       # Default: true
@@ -361,17 +393,20 @@ linters:
       # Enable/disable optimization of error formatting.
       # Default: true
       error-format: false # https://github.com/catenacyber/perfsprint/issues/62
+
     reassign:
       # Patterns for global variable names that are checked for reassignment.
       # See https://github.com/curioswitch/go-reassign#usage
       # Default: ["EOF", "Err.*"]
       patterns:
         - ".*"
+
     rowserrcheck:
       # database/sql is always checked.
       # Default: []
       packages:
         - github.com/jmoiron/sqlx
+
     sloglint:
       # Report the use of global loggers.
       # https://github.com/go-simpler/sloglint#no-global-logger
@@ -383,6 +418,7 @@ linters:
       # Values: "all", "scope"
       # Default: "" (disabled)
       context: scope
+
     staticcheck:
       # SAxxxx checks in https://staticcheck.dev/docs/configuration/options/#checks
       # Example (to disable some checks): [ "all", "-SA1000", "-SA1001"]
@@ -398,10 +434,12 @@ linters:
         # Omit embedded fields from selector expression.
         # https://staticcheck.dev/docs/checks/#QF1008
         - -QF1008
+
     usetesting:
       # Enable/disable `os.TempDir()` detections.
       # Default: false
       os-temp-dir: true
+
   exclusions:
     # Log a warning if an exclusion rule is unused.
     # Default: false
