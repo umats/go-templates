@@ -61,17 +61,7 @@ tasks:
 
   dl:lint:
     cmds:
-      - |
-        target="{{.ROOT_DIR | toSlash}}/.golangci.yml"
-        source=https://10.6.250.39:3433/public/.golangci.yml
-        repo=ssh://git@gitlab.lgt.com:7999/infautomation/common/go-templates.git
-        if ! curl -kfsSL --connect-timeout 2 "$source" -o "$target"; then
-          tmpdir="${target}.tmp"
-          rm -rf "$tmpdir"
-          git clone --depth 1 "$repo" "$tmpdir"
-          cp "$tmpdir/.golangci.yml" "$target"
-          rm -rf "$tmpdir"
-        fi
+      - cmd: curl -fsSL https://raw.githubusercontent.com/umats/go-templates/refs/heads/main/.golangci.yml -o "{{.ROOT_DIR | toSlash}}/.golangci.yml"
 
   lint:
     cmds:
