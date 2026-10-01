@@ -1,0 +1,91 @@
+version: "3"
+
+vars:
+  BIN: "{{.ROOT_DIR | toSlash}}/bin"
+  EXT: "{{default exeExt .EXT}}"
+  DEFAULT_APP:
+    sh: basename {{.ROOT_DIR | toSlash}} -dev | tr '[:upper:]' '[:lower:]'
+  GOFLAGS: -gcflags=-trimpath={{.ROOT_DIR | toSlash}} -asmflags=-trimpath={{.ROOT_DIR | toSlash}} -tags timetzdata {{.GO_VENDOR | default "-mod=vendor"}}
+  LDFLAGS: -ldflags "-w -s -X main.BuildRevision=$REVISION -X main.BuildDate={{now | date "2006-01-02T15:04:05Z07:00"}} -X main.BuildTag=$TAG"
+
+env:
+  CGO_ENABLED: "0"
+  GOOS: "{{default OS .GOOS}}"
+  GOARCH: "{{default ARCH .GOARCH}}"
+
+tasks:
+  default:
+    cmds:
+      - task: build
+
+  build:
+    cmds:
+      - mkdir -p bin
+      - go build {{.GOFLAGS}} {{.LDFLAGS}} -o bin/{{.APP | default .DEFAULT_APP}}{{.EXT}} {{.APP_FOLDER | default "."}}
+
+  build:linux:
+    cmds:
+      - task: build
+        vars:
+          EXT: " "
+          GOOS: linux
+          GOARCH: amd64
+
+  build:win:
+    cmds:
+      - task: build
+        vars:
+          EXT: ".exe"
+          GOOS: windows
+          GOARCH: amd64
+
+  install:
+    cmds:
+      - go install {{.GOFLAGS}} {{.LDFLAGS}} {{.APP_FOLDER | default "."}}
+
+  test:
+    cmds:
+      - go test -v ./...
+
+  test:race:
+    cmds:
+      - CGO_ENABLED=1 go test -race -v ./...
+
+  test:cover:
+    cmds:
+      - go test -cover ./...
+
+  test:integration:
+    cmds:
+      - INTEGRATION=1 go test -v ./...
+
+  dl:lint:
+    cmds:
+      - |
+        target="{{.ROOT_DIR | toSlash}}/.golangci.yml"
+        source=https://10.6.250.39:3433/public/.golangci.yml
+        repo=ssh://git@gitlab.lgt.com:7999/infautomation/common/go-templates.git
+        if ! curl -kfsSL --connect-timeout 2 "$source" -o "$target"; then
+          tmpdir="${target}.tmp"
+          rm -rf "$tmpdir"
+          git clone --depth 1 "$repo" "$tmpdir"
+          cp "$tmpdir/.golangci.yml" "$target"
+          rm -rf "$tmpdir"
+        fi
+
+  lint:
+    cmds:
+      - cmd: golangci-lint run -v -c {{.ROOT_DIR | toSlash}}/.golangci.yml
+
+  lint:fix:
+    cmds:
+      - cmd: golangci-lint run --fix -v -c {{.ROOT_DIR | toSlash}}/.golangci.yml
+
+  docs:
+    cmds:
+      # go install github.com/umats/gomarkdoc/cmd/gomarkdoc@latest
+      - gomarkdoc -f gitlab --output '{{"{{"}}.Dir{{"}}"}}/DOCS.md' --exclude-dirs .../testdata/...,./vendor/...,./bin/...{{.DOCS_EXTRA_EXCLUDE_DIRS}} -e ./...
+
+  openapi:
+    cmds:
+      - go run . openapi > openapi.yaml
