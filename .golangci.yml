@@ -8,6 +8,28 @@
 # If this config helps you, please consider keeping a link to this repo (see the next comment).
 # Based on https://github.com/maratori/golangci-lint-config
 version: "2"
+
+run:
+  # The mode used to evaluate relative paths.
+  # It's used by exclusions, Go plugins, and some linters.
+  # The value can be:
+  # - `gomod`: the paths will be relative to the directory of the `go.mod` file.
+  # - `gitroot`: the paths will be relative to the git root (the parent directory of `.git`).
+  # - `cfg`: the paths will be relative to the configuration file.
+  # - `wd` (NOT recommended): the paths will be relative to the place where golangci-lint is run.
+  # Default: wd
+  relative-path-mode: gomod
+
+  # Allow multiple parallel golangci-lint instances running.
+  # If false, golangci-lint acquires file lock on start.
+  # Default: false
+  allow-parallel-runners: false
+
+  # Allow multiple golangci-lint instances running, but serialize them around a lock.
+  # If false, golangci-lint exits with an error if it fails to acquire file lock on start.
+  # Default: false
+  allow-serial-runners: true
+
 issues:
   # Maximum count of issues with the same text.
   # Set to 0 to disable.
@@ -15,10 +37,10 @@ issues:
   max-same-issues: 50
 formatters:
   enable:
-    - goimports # checks if the code and import statements are formatted according to the 'goimports' command
-    - golines # checks if code is formatted, and fixes long lines
+    #- goimports # checks if the code and import statements are formatted according to the 'goimports' command
+    #- golines # checks if code is formatted, and fixes long lines
     ## you may want to enable
-    #- gci # checks if code and import statements are formatted, with additional rules
+    - gci # checks if code and import statements are formatted, with additional rules
     #- gofmt # checks if the code is formatted according to 'gofmt' command
     #- gofumpt # enforces a stricter format than 'gofmt', while being backwards compatible
     #- swaggo # formats swaggo comments
@@ -29,7 +51,9 @@ formatters:
       # with the given prefixes are grouped after 3rd-party packages.
       # Default: []
       local-prefixes:
-        - github.com/my/project
+        - gitlab.lgt.com
+        - gitlab.nimbusplane.io
+
     golines:
       # Target maximum line length.
       # Default: 100
@@ -129,8 +153,9 @@ linters:
     #- prealloc # [premature optimization, but can be used in some cases] finds slice declarations that could potentially be preallocated
     #- tagalign # checks that struct tags are well aligned
     #- varnamelen # [great idea, but too many false positives] checks that the length of a variable's name matches its scope
-    #- wrapcheck # checks that errors returned from external packages are wrapped
-    #- zerologlint # detects the wrong usage of zerolog that a user forgets to dispatch zerolog.Event
+    - wrapcheck # checks that errors returned from external packages are wrapped
+    - zerologlint # detects the wrong usage of zerolog that a user forgets to dispatch zerolog.Event
+
     ## disabled
     #- containedctx # detects struct contained context.Context field
     #- contextcheck # [too many false positives] checks the function whether use a non-inherited context
@@ -144,7 +169,7 @@ linters:
     #- gosmopolitan # reports certain i18n/l10n anti-patterns in your Go codebase
     #- grouper # analyzes expression groups
     #- importas # enforces consistent import aliases
-    #- lll # [replaced by golines] reports long lines
+    - lll # [replaced by golines] reports long lines
     #- maintidx # measures the maintainability index of each function
     #- misspell # [useless] finds commonly misspelled English words in comments
     #- nlreturn # [too strict and mostly code is not more readable] checks for a new line before return and branch statements to increase code clarity
@@ -217,6 +242,12 @@ linters:
       # Such cases aren't reported by default.
       # Default: false
       check-type-assertions: true
+      check-blank: true
+      exclude-functions:
+        - github.com/go-chi/render.Render
+        - (net/http.ResponseWriter).Write
+        - github.com/danielgtaylor/huma/v2.WriteErr
+
     exhaustive:
       # Program elements to check for exhaustiveness.
       # Default: [ switch ]
@@ -271,6 +302,10 @@ linters:
       # If lower than 0, disable the check.
       # Default: 40
       statements: 50
+      # Ignore comments when counting lines.
+      # Default false
+      ignore-comments: true
+
     gochecksumtype:
       # Presence of `default` case in switch statements satisfies exhaustiveness, if all members are not listed.
       # Default: true
@@ -278,7 +313,7 @@ linters:
     gocognit:
       # Minimal code complexity to report.
       # Default: 30 (but we recommend 10-20)
-      min-complexity: 20
+      min-complexity: 30
     gocritic:
       # Settings passed to gocritic.
       # The settings key is the name of a supported gocritic checker.
@@ -292,6 +327,11 @@ linters:
           # Whether to skip (*x).method() calls where x is a pointer receiver.
           # Default: true
           skipRecvDeref: false
+
+    gosec:
+      excludes:
+        - G104 # duplicate of errcheck
+
     godoclint:
       # List of rules to enable in addition to the default set.
       # Default: empty
@@ -340,14 +380,22 @@ linters:
         - os.WriteFile
         - prometheus.ExponentialBuckets.*
         - prometheus.LinearBuckets
+        - trand.Rand*
+
     nakedret:
       # Make an issue if func has more lines of code than this setting, and it has naked returns.
       # Default: 30
       max-func-lines: 0
+
+    nestif:
+      # Minimal complexity of if statements to report.
+      # Default: 5
+      min-complexity: 8
+
     nolintlint:
       # Exclude following linters from requiring an explanation.
       # Default: []
-      allow-no-explanation: [funlen, gocognit, golines]
+      allow-no-explanation: [funlen, gocognit, golines, lll]
       # Enable to require an explanation of nonzero length after each nolint directive.
       # Default: false
       require-explanation: true
@@ -399,6 +447,15 @@ linters:
         # https://staticcheck.dev/docs/checks/#QF1008
         - -QF1008
     usetesting:
+      # Enable/disable `os.CreateTemp("", ...)` detections.
+      # Default: true
+      os-create-temp: true
+      # Enable/disable `os.MkdirTemp()` detections.
+      # Default: true
+      os-mkdir-temp: true
+      # Enable/disable `os.Setenv()` detections.
+      # Default: true
+      os-setenv: true
       # Enable/disable `os.TempDir()` detections.
       # Default: false
       os-temp-dir: true
