@@ -70,6 +70,12 @@ tasks:
   lint:fix:
     cmds:
       - cmd: golangci-lint run --fix -v -c {{.ROOT_DIR | toSlash}}/.golangci.yml
+  
+  preflight:
+    cmds:
+      - task: lint
+      - task: test:race
+      - task: build
 
   docs:
     cmds:
