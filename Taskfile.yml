@@ -53,7 +53,18 @@ tasks:
 
   test:cover:
     cmds:
-      - go test -cover ./...
+      - CGO_ENABLED=1 go test -race -covermode=atomic -coverprofile=coverage.out -coverpkg=./... ./...
+      - go tool cover -func=coverage.out | tail -n1   # overall statement coverage
+
+  test:cover:check:   # gate: overall >= 85, each business pkg >= 95
+    deps: [test:cover]
+    cmds:
+      - |
+        go tool cover -func=coverage.out | awk '/^total:/ {sub("%","",$3); if ($3+0 < {{.COVER_MIN | default 85}}) {print "overall " $3 "% < {{.COVER_MIN | default 85}}%"; bad=1}} END {exit bad}'
+      - |
+        for p in {{.BUSINESS_PKGS}}; do   # set per project, e.g. "./pkg/api ./pkg/app ./cmd"
+          go test -cover "$p" | awk -v p="$p" '{for(i=1;i<=NF;i++) if($i=="coverage:"){v=$(i+1); sub("%","",v); if (v+0 < {{.BUSINESS_MIN | default 95}}) {print p " " v "% < {{.BUSINESS_MIN | default 95}}%"; bad=1}}} END {exit bad}'
+        done
 
   test:integration:
     cmds:
