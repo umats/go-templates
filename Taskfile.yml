@@ -62,9 +62,14 @@ tasks:
       - |
         go tool cover -func=coverage.out | awk '/^total:/ {sub("%","",$3); if ($3+0 < {{.COVER_MIN | default 85}}) {print "overall " $3 "% < {{.COVER_MIN | default 85}}%"; bad=1}} END {exit bad}'
       - |
-        for p in {{.BUSINESS_PKGS}}; do   # set per project, e.g. "./pkg/api ./pkg/app ./cmd"
-          go test -cover "$p" | awk -v p="$p" '{for(i=1;i<=NF;i++) if($i=="coverage:"){v=$(i+1); sub("%","",v); if (v+0 < {{.BUSINESS_MIN | default 95}}) {print p " " v "% < {{.BUSINESS_MIN | default 95}}%"; bad=1}}} END {exit bad}'
+        set -o pipefail
+        pkgs="{{.BUSINESS_PKGS}}"   # set per project, e.g. "./pkg/api ./pkg/app ./cmd"
+        if [ -z "$pkgs" ]; then echo "BUSINESS_PKGS is not set" >&2; exit 1; fi
+        rc=0
+        for p in $pkgs; do
+          go test -cover "$p" | awk -v p="$p" '{print} {for(i=1;i<=NF;i++) if($i=="coverage:"){v=$(i+1); sub("%","",v); seen=1; if (v+0 < {{.BUSINESS_MIN | default 95}}) {print p " " v "% < {{.BUSINESS_MIN | default 95}}%"; bad=1}}} END {if(!seen){print p ": no coverage line"; bad=1} exit bad}' || rc=1
         done
+        exit $rc
 
   test:integration:
     cmds:
